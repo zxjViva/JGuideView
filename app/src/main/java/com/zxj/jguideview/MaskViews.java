@@ -17,8 +17,8 @@ public class MaskViews {
             public void event() {
                 if (origEventCallback != null){
                     origEventCallback.event();
-                    boolean b = applyNext();
                 }
+                boolean b = applyNext();
             }
         }).apply();
     }

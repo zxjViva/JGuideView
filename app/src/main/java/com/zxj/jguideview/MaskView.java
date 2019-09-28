@@ -1,11 +1,15 @@
 package com.zxj.jguideview;
 
+import android.content.Context;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 public class MaskView {
+    private static final String MASK_TAG = "com.zxj.jGuideView.mask";
 
     private final MaskLayouter maskLayouter;
     private MaskCalculator maskCalculator;
@@ -57,20 +61,29 @@ public class MaskView {
         return this;
     }
     public void apply(){
-        FrameLayout frameLayout = new FrameLayout(rootView.getContext());
-        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT);
-        frameLayout.setLayoutParams(layoutParams);
-        rootView.addView(frameLayout);
-        maskOptions.guideView.setVisibility(View.VISIBLE);
-        frameLayout.setOnClickListener(new View.OnClickListener() {
+        ViewGroup realRoot = (ViewGroup) this.rootView.getRootView();
+        View clickEventView = realRoot.findViewWithTag(MASK_TAG);
+        if (clickEventView == null){
+            clickEventView = new FrameLayout(realRoot.getContext());
+            ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+            clickEventView.setLayoutParams(layoutParams);
+            clickEventView.setTag(MASK_TAG);
+            realRoot.addView(clickEventView);
+        }
+        clickEventView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e("zxj", "onClick: ");
                 if (eventCallback != null){
                     eventCallback.event();
                 }
+                dismiss();
             }
         });
+        Log.e("zxj", "apply: ");
+        maskLayouter.visible();
+        maskLayouter.layout();
     }
 
     private void startLayout(MaskOptions maskOptions) {
@@ -78,5 +91,10 @@ public class MaskView {
         maskLayouter.setCalculator(maskCalculator);
         maskLayouter.layout();
         maskLayouter.addOnGlobalLayoutListener();
+    }
+    void dismiss(){
+        if (maskLayouter != null){
+            maskLayouter.gone();
+        }
     }
 }

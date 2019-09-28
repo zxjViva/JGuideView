@@ -4,6 +4,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ScrollView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,7 +15,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         View targetView = findViewById(R.id.tv);
-        ViewGroup rootView = findViewById(android.R.id.content);
+        final View targetView2 = findViewById(R.id.tv2);
+        final ScrollView rootView = findViewById(R.id.sv);
         MaskView maskView = new MaskView(targetView, rootView);
         maskView.find().calculate(new MaskCalculator.CalculatListener() {
             @Override
@@ -22,14 +24,25 @@ public class MainActivity extends AppCompatActivity {
                 View guideView = getLayoutInflater().inflate(R.layout.guide_item, null);
                 return new MaskOptions(guideView);
             }
+        }).addEvent(new MaskView.EventCallback() {
+            @Override
+            public void event() {
+                boolean globalVisibleRect = targetView2.getGlobalVisibleRect(new Rect());
+                if (!globalVisibleRect){
+                    rootView.smoothScrollTo(0,3000);
+                }
+
+            }
         });
-        View targetView2 = findViewById(R.id.tv2);
+
         MaskView maskView1 = new MaskView(targetView2, rootView);
         maskView1.find().calculate(new MaskCalculator.CalculatListener() {
             @Override
             public MaskOptions onResult(Rect tartViewRect) {
-                View guideView = getLayoutInflater().inflate(R.layout.guide_item, null);
-                return new MaskOptions(guideView);
+                View guideView = getLayoutInflater().inflate(R.layout.guide_item, rootView,false);
+                MaskOptions maskOptions = new MaskOptions(guideView);
+                maskOptions.orientation = MaskLayouter.AlignOrientation.RIGHT;
+                return maskOptions;
             }
         });
         MaskViews maskViews = new MaskViews();
