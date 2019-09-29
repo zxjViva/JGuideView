@@ -5,7 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 //只是用来计算坐标大小之类的
-public class MaskCalculator {
+public class GuideCalculator {
     private final View targetView;
     private final ViewGroup rootView;
     private Rect targetViewRect;
@@ -13,27 +13,15 @@ public class MaskCalculator {
 
 
     public interface CalculatListener{
-        MaskOptions onResult(Rect tartViewRect);
+        GuideOptions onResult(Rect tartViewRect);
     }
 
-    public MaskCalculator(View targetView, ViewGroup rootView) {
+    public GuideCalculator(View targetView, ViewGroup rootView) {
         this.targetView = targetView;
         this.rootView = rootView;
     }
 
-    MaskCalculator find(){
-        targetView.post(new Runnable() {
-            @Override
-            public void run() {
-                targetViewRect = calculateRect(targetView,rootView);
-                if (listener != null){
-                    listener.onResult(targetViewRect);
-                }
 
-            }
-        });
-        return this;
-    }
 
     public Rect calculateRect(View targetView,ViewGroup rootView) {
         int measuredHeight = targetView.getMeasuredHeight();
@@ -46,11 +34,14 @@ public class MaskCalculator {
     }
 
     //计算一下guideview的显示位置，因为如果是动态布局的话，肯定guideview也是动态的
-    public MaskCalculator calculate(CalculatListener listener){
-        this.listener = listener;
-        if (targetViewRect != null){
-            listener.onResult(targetViewRect);
-        }
+    public GuideCalculator calculate(final CalculatListener listener){
+        targetView.post(new Runnable() {
+            @Override
+            public void run() {
+                Rect rect = calculateRect(targetView, rootView);
+                listener.onResult(rect);
+            }
+        });
         return this;
     }
 
@@ -77,7 +68,7 @@ public class MaskCalculator {
             if (parent == viewGroup){
                 return totalLeft;
             }else {
-                return getTopAtRoot(parent,viewGroup,totalLeft);
+                return getLeftAtRoot(parent,viewGroup,totalLeft);
             }
         }else {
             return totalLeft;

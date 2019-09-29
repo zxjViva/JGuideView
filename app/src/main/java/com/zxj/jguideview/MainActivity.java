@@ -2,8 +2,8 @@ package com.zxj.jguideview;
 
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ScrollView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,38 +14,53 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        View targetView = findViewById(R.id.tv);
+        final View targetView = findViewById(R.id.tv);
         final View targetView2 = findViewById(R.id.tv2);
         final ScrollView rootView = findViewById(R.id.sv);
-        MaskView maskView = new MaskView(targetView, rootView);
-        maskView.find().calculate(new MaskCalculator.CalculatListener() {
+        targetView.postDelayed(new Runnable() {
             @Override
-            public MaskOptions onResult(Rect tartViewRect) {
+            public void run() {
+                targetView.setVisibility(View.VISIBLE);
+            }
+        },2000);
+        GuideView maskView = new GuideView(targetView, rootView);
+        maskView.find().calculate(new GuideCalculator.CalculatListener() {
+            @Override
+            public GuideOptions onResult(Rect tartViewRect) {
                 View guideView = getLayoutInflater().inflate(R.layout.guide_item, null);
-                return new MaskOptions(guideView);
+                return new GuideOptions(guideView);
             }
-        }).addEvent(new MaskView.EventCallback() {
+        }).addEvent(new GuideView.EventCallback() {
             @Override
-            public void event() {
-                boolean globalVisibleRect = targetView2.getGlobalVisibleRect(new Rect());
-                if (!globalVisibleRect){
-                    rootView.smoothScrollTo(0,3000);
-                }
+            public void event(int type) {
+                Log.e("zxj", "event: " + type );
 
             }
         });
 
-        MaskView maskView1 = new MaskView(targetView2, rootView);
-        maskView1.find().calculate(new MaskCalculator.CalculatListener() {
+        GuideView guideView1 = new GuideView(targetView2, rootView);
+        guideView1.find().calculate(new GuideCalculator.CalculatListener() {
             @Override
-            public MaskOptions onResult(Rect tartViewRect) {
+            public GuideOptions onResult(Rect tartViewRect) {
                 View guideView = getLayoutInflater().inflate(R.layout.guide_item, rootView,false);
-                MaskOptions maskOptions = new MaskOptions(guideView);
-                maskOptions.orientation = MaskLayouter.AlignOrientation.RIGHT;
-                return maskOptions;
+                GuideOptions guideOptions = new GuideOptions(guideView,
+                        GuideLayouter.Gravity.TOP|GuideLayouter.Gravity.RIGHT);
+                guideOptions.orientation = GuideLayouter.AlignOrientation.RIGHT;
+                return guideOptions;
             }
         });
-        MaskViews maskViews = new MaskViews();
-        maskViews.addMaskView(maskView).addMaskView(maskView1).apply();
+        View targetView3 = findViewById(R.id.tv3);
+        GuideView guideView3 = new GuideView(targetView3, rootView);
+        guideView3.find().calculate(new GuideCalculator.CalculatListener() {
+            @Override
+            public GuideOptions onResult(Rect tartViewRect) {
+                View guideView = getLayoutInflater().inflate(R.layout.guide_item, rootView,false);
+                GuideOptions guideOptions = new GuideOptions(guideView);
+                guideOptions.orientation = GuideLayouter.AlignOrientation.RIGHT;
+                return guideOptions;
+            }
+        });
+        GuideViews guideViews = new GuideViews(this);
+        guideViews.addMaskView(guideView3).addMaskView(maskView).addMaskView(guideView1).apply();
     }
 }

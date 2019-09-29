@@ -7,26 +7,29 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
-import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.ScrollView;
 
 import java.util.Locale;
 
-public class MaskLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
+public class GuideLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
     private final ViewGroup rootView;
     private final View targetView;
-    MaskOptions maskOptions;
+    GuideOptions guideOptions;
     private Rect targetViewRect;
-    private MaskCalculator calculator;
+    private GuideCalculator calculator;
     private boolean isVisible;
 
-    public MaskLayouter(View targetView, ViewGroup rootView) {
+    public void setVisible(boolean visible) {
+        isVisible = visible;
+    }
+
+    public GuideLayouter(View targetView, ViewGroup rootView) {
         this.targetView = targetView;
         this.rootView = rootView;
     }
 
-    public void setCalculator(MaskCalculator calculator) {
+    void setCalculator(GuideCalculator calculator) {
         this.calculator = calculator;
     }
 
@@ -71,18 +74,20 @@ public class MaskLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
     //对齐方式，左对齐，右对齐
     public enum AlignOrientation{
         LEFT,
-        RIGHT
+        RIGHT,
     }
 
-    public void setMaskOptions(MaskOptions maskOptions) {
-        this.maskOptions = maskOptions;
+    public void setGuideOptions(GuideOptions guideOptions) {
+        this.guideOptions = guideOptions;
     }
 
     public void layout() {
-        if (maskOptions == null){
+        if (guideOptions == null){
             return;
         }
-        View guideView = maskOptions.guideView;
+        Rect tempRect = new Rect(targetViewRect);
+        AlignOrientation tempOri = guideOptions.orientation;
+        View guideView = guideOptions.guideView;
         if (guideView.getParent() == null) {
             addToRoot(guideView);
         }
@@ -91,32 +96,45 @@ public class MaskLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
         }else {
             invisible();
         }
-        int gravity = maskOptions.gravity;
-        int x = 0;
-        int y = 0;
+
+        if (isRtl()){
+            tempRect = new Rect(tempRect.right,tempRect.top,tempRect.left,tempRect.bottom);
+            if (tempOri == AlignOrientation.RIGHT){
+                tempOri = AlignOrientation.LEFT;
+            }else {
+                tempOri = AlignOrientation.RIGHT;
+            }
+
+        }
+        int gravity = guideOptions.gravity;
+        int x = tempRect.left;
+        int y = tempRect.bottom;
 
         if ((gravity & Gravity.CENTER_HORZ) == Gravity.CENTER_HORZ) {
-            x = (targetViewRect.left + targetViewRect.right) / 2;
+            x = (tempRect.left + tempRect.right) / 2;
         } else if ((gravity & Gravity.LEFT) == Gravity.LEFT) {
-            x = targetViewRect.left;
+            x = tempRect.left;
         } else if ((gravity & Gravity.RIGHT) == Gravity.RIGHT) {
-            x = targetViewRect.right;
+            x = tempRect.right;
         }
 
         if ((gravity & Gravity.CENTER_VERT) == Gravity.CENTER_VERT) {
-            y = (targetViewRect.top + targetViewRect.bottom) / 2;
+            y = (tempRect.top + tempRect.bottom) / 2;
         } else if ((gravity & Gravity.TOP) == Gravity.TOP) {
-            y = targetViewRect.top;
+            y = tempRect.top - guideView.getMeasuredHeight();
         } else if ((gravity & Gravity.BOTTOM) == Gravity.BOTTOM) {
-            y = targetViewRect.bottom;
+            y = tempRect.bottom;
         }
-        if (maskOptions.orientation == AlignOrientation.RIGHT){
+        if (tempOri == AlignOrientation.RIGHT){
             x = x - guideView.getMeasuredWidth();
         }
-        Log.e("zxj", "coordinate: " + guideView.getX() + "," + guideView.getY());
-        Log.e("zxj", "visible: " + guideView.getVisibility());
         guideView.setX(x);
         guideView.setY(y);
+
+        Log.e("zxj", "target: " + tempRect.toString() );
+        Log.e("zxj", "coordinate: " + guideView.getX() + "," + guideView.getY());
+        Log.e("zxj", "visible: " + guideView.getVisibility());
+
     }
     private void addToRoot(View view){
         if (rootView instanceof ScrollView){
@@ -139,25 +157,25 @@ public class MaskLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
 
     void invisible() {
         isVisible = false;
-        if (maskOptions != null && maskOptions.guideView.getVisibility() == View.VISIBLE) {
-            if (maskOptions.openAnimation) {
+        if (guideOptions != null && guideOptions.guideView.getVisibility() == View.VISIBLE) {
+            if (guideOptions.openAnimation) {
                 AlphaAnimation alphaAnimation = new AlphaAnimation(1f, 0f);
                 alphaAnimation.setDuration(200);
-                maskOptions.guideView.startAnimation(alphaAnimation);
+                guideOptions.guideView.startAnimation(alphaAnimation);
             }
-            maskOptions.guideView.setVisibility(View.INVISIBLE);
+            guideOptions.guideView.setVisibility(View.INVISIBLE);
         }
     }
 
     public void visible() {
         isVisible = true;
-        if (maskOptions != null && maskOptions.guideView.getVisibility() != View.VISIBLE) {
-            if (maskOptions.openAnimation) {
+        if (guideOptions != null && guideOptions.guideView.getVisibility() != View.VISIBLE) {
+            if (guideOptions.openAnimation) {
                 AlphaAnimation alphaAnimation = new AlphaAnimation(0f, 1f);
                 alphaAnimation.setDuration(200);
-                maskOptions.guideView.startAnimation(alphaAnimation);
+                guideOptions.guideView.startAnimation(alphaAnimation);
             }
-            maskOptions.guideView.setVisibility(View.VISIBLE);
+            guideOptions.guideView.setVisibility(View.VISIBLE);
         }
     }
     private boolean isRtl() {
