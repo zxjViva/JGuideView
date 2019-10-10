@@ -5,18 +5,25 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 
 import java.util.Locale;
 
+import static android.widget.RelativeLayout.ALIGN_PARENT_END;
+import static android.widget.RelativeLayout.BELOW;
+
 public class GuideLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
+    private static final int TAG_TEMPLATE_VIEW_ID = 1;
     private final ViewGroup rootView;
     private final View targetView;
     GuideOptions guideOptions;
     private Rect targetViewRect;
+    private Rect lastTargetViwRect;
     private GuideCalculator calculator;
     private boolean isVisible;
 
@@ -61,91 +68,176 @@ public class GuideLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
         }
     }
 
-    public interface Gravity {
-        int LEFT = 1;//0b01
-        int RIGHT = 1 << 1;//0b10
-        int CENTER_HORZ = LEFT | RIGHT;//0b11
-        int TOP = 1 << 2;//0b0100
-        int BOTTOM = 1 << 3;//0b1000
-        int CENTER_VERT = TOP | BOTTOM;//0b1100
-        int CENTER = CENTER_HORZ | CENTER_VERT;
-        int COVER = LEFT | TOP;
+    public interface Rule {
+        /**
+         * Rule that aligns a child's right edge with another child's left edge.
+         */
+        public static final int LEFT_OF = 0;
+        /**
+         * Rule that aligns a child's left edge with another child's right edge.
+         */
+        public static final int RIGHT_OF = 1;
+        /**
+         * Rule that aligns a child's bottom edge with another child's top edge.
+         */
+        public static final int ABOVE = 2;
+        /**
+         * Rule that aligns a child's top edge with another child's bottom edge.
+         */
+        public static final int BELOW = 3;
+
+        /**
+         * Rule that aligns a child's baseline with another child's baseline.
+         */
+        public static final int ALIGN_BASELINE = 4;
+        /**
+         * Rule that aligns a child's left edge with another child's left edge.
+         */
+        public static final int ALIGN_LEFT = 5;
+        /**
+         * Rule that aligns a child's top edge with another child's top edge.
+         */
+        public static final int ALIGN_TOP = 6;
+        /**
+         * Rule that aligns a child's right edge with another child's right edge.
+         */
+        public static final int ALIGN_RIGHT = 7;
+        /**
+         * Rule that aligns a child's bottom edge with another child's bottom edge.
+         */
+        public static final int ALIGN_BOTTOM = 8;
+
+        /**
+         * Rule that aligns the child's left edge with its RelativeLayout
+         * parent's left edge.
+         */
+        public static final int ALIGN_PARENT_LEFT = 9;
+        /**
+         * Rule that aligns the child's top edge with its RelativeLayout
+         * parent's top edge.
+         */
+        public static final int ALIGN_PARENT_TOP = 10;
+        /**
+         * Rule that aligns the child's right edge with its RelativeLayout
+         * parent's right edge.
+         */
+        public static final int ALIGN_PARENT_RIGHT = 11;
+        /**
+         * Rule that aligns the child's bottom edge with its RelativeLayout
+         * parent's bottom edge.
+         */
+        public static final int ALIGN_PARENT_BOTTOM = 12;
+
+        /**
+         * Rule that centers the child with respect to the bounds of its
+         * RelativeLayout parent.
+         */
+        public static final int CENTER_IN_PARENT = 13;
+        /**
+         * Rule that centers the child horizontally with respect to the
+         * bounds of its RelativeLayout parent.
+         */
+        public static final int CENTER_HORIZONTAL = 14;
+        /**
+         * Rule that centers the child vertically with respect to the
+         * bounds of its RelativeLayout parent.
+         */
+        public static final int CENTER_VERTICAL = 15;
+        /**
+         * Rule that aligns a child's end edge with another child's start edge.
+         */
+        public static final int START_OF = 16;
+        /**
+         * Rule that aligns a child's start edge with another child's end edge.
+         */
+        public static final int END_OF = 17;
+        /**
+         * Rule that aligns a child's start edge with another child's start edge.
+         */
+        public static final int ALIGN_START = 18;
+        /**
+         * Rule that aligns a child's end edge with another child's end edge.
+         */
+        public static final int ALIGN_END = 19;
+        /**
+         * Rule that aligns the child's start edge with its RelativeLayout
+         * parent's start edge.
+         */
+        public static final int ALIGN_PARENT_START = 20;
+        /**
+         * Rule that aligns the child's end edge with its RelativeLayout
+         * parent's end edge.
+         */
+        public static final int ALIGN_PARENT_END = 21;
     }
-    //对齐方式，左对齐，右对齐
-    public enum AlignOrientation{
-        LEFT,
-        RIGHT,
-    }
+
 
     public void setGuideOptions(GuideOptions guideOptions) {
         this.guideOptions = guideOptions;
     }
 
     public void layout() {
-        if (guideOptions == null){
+        if (guideOptions == null || (lastTargetViwRect != null && lastTargetViwRect.equals(targetViewRect))
+                || targetView.getMeasuredWidth() == 0) {
             return;
         }
         Rect tempRect = new Rect(targetViewRect);
-        AlignOrientation tempOri = guideOptions.orientation;
         View guideView = guideOptions.guideView;
         if (guideView.getParent() == null) {
             addToRoot(guideView);
         }
-        if (isVisible){
+        if (isVisible) {
             visible();
-        }else {
+        } else {
             invisible();
         }
-
-        if (isRtl()){
-            tempRect = new Rect(tempRect.right,tempRect.top,tempRect.left,tempRect.bottom);
-            if (tempOri == AlignOrientation.RIGHT){
-                tempOri = AlignOrientation.LEFT;
+        RelativeLayout parent = (RelativeLayout) guideView.getParent();
+        View tagview = parent.findViewById(TAG_TEMPLATE_VIEW_ID);
+        if (tagview == null) {
+            tagview = new View(guideView.getContext());
+            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(tempRect.right - tempRect.left,
+                    tempRect.bottom - tempRect.top);
+            int marginStart = isRtl() ? (rootView.getMeasuredWidth() - tempRect.right) : tempRect.left;
+            layoutParams.setMarginStart(marginStart);
+            layoutParams.topMargin = tempRect.top;
+            tagview.setLayoutParams(layoutParams);
+            tagview.setId(TAG_TEMPLATE_VIEW_ID);
+            parent.addView(tagview);
+        } else {
+            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(tempRect.right - tempRect.left,
+                    tempRect.bottom - tempRect.top);
+            int marginStart = isRtl() ? (rootView.getMeasuredWidth() - tempRect.right) : tempRect.left;
+            layoutParams.setMarginStart(marginStart);
+            layoutParams.topMargin = tempRect.top;
+            tagview.setLayoutParams(layoutParams);
+        }
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) guideView.getLayoutParams();
+        for (int rule : guideOptions.rules) {
+            if (9 <= rule && rule <= 15){
+                layoutParams.addRule(rule);
             }else {
-                tempOri = AlignOrientation.RIGHT;
+                layoutParams.addRule(rule, tagview.getId());
             }
-
-        }
-        int gravity = guideOptions.gravity;
-        int x = tempRect.left;
-        int y = tempRect.bottom;
-
-        if ((gravity & Gravity.CENTER_HORZ) == Gravity.CENTER_HORZ) {
-            x = (tempRect.left + tempRect.right) / 2;
-        } else if ((gravity & Gravity.LEFT) == Gravity.LEFT) {
-            x = tempRect.left;
-        } else if ((gravity & Gravity.RIGHT) == Gravity.RIGHT) {
-            x = tempRect.right;
         }
 
-        if ((gravity & Gravity.CENTER_VERT) == Gravity.CENTER_VERT) {
-            y = (tempRect.top + tempRect.bottom) / 2;
-        } else if ((gravity & Gravity.TOP) == Gravity.TOP) {
-            y = tempRect.top - guideView.getMeasuredHeight();
-        } else if ((gravity & Gravity.BOTTOM) == Gravity.BOTTOM) {
-            y = tempRect.bottom;
-        }
-        if (tempOri == AlignOrientation.RIGHT){
-            x = x - guideView.getMeasuredWidth();
-        }
-        guideView.setX(x);
-        guideView.setY(y);
-
-        Log.e("zxj", "target: " + tempRect.toString() );
-        Log.e("zxj", "coordinate: " + guideView.getX() + "," + guideView.getY());
-        Log.e("zxj", "visible: " + guideView.getVisibility());
-
+        lastTargetViwRect = new Rect(targetViewRect);
     }
-    private void addToRoot(View view){
-        if (rootView instanceof ScrollView){
+
+    private void addToRoot(View view) {
+        RelativeLayout relativeLayout = new RelativeLayout(view.getContext());
+        relativeLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (rootView instanceof ScrollView) {
             FrameLayout frameLayout = new FrameLayout(view.getContext());
             View childAt = rootView.getChildAt(0);
             rootView.removeView(childAt);
             frameLayout.addView(childAt);
-            frameLayout.addView(view);
+            relativeLayout.addView(view);
+            frameLayout.addView(relativeLayout);
             rootView.addView(frameLayout);
-        }else {
-            rootView.addView(view);
+        } else {
+            relativeLayout.addView(view);
+            rootView.addView(relativeLayout);
         }
 
     }
@@ -163,7 +255,11 @@ public class GuideLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
                 alphaAnimation.setDuration(200);
                 guideOptions.guideView.startAnimation(alphaAnimation);
             }
-            guideOptions.guideView.setVisibility(View.INVISIBLE);
+            guideOptions.guideView.setVisibility(View.GONE);
+            ViewGroup parent = (ViewGroup) guideOptions.guideView.getParent();
+            View templateView = parent.findViewById(TAG_TEMPLATE_VIEW_ID);
+            parent.removeView(templateView);
+            parent.removeView(guideOptions.guideView);
         }
     }
 
@@ -178,6 +274,7 @@ public class GuideLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
             guideOptions.guideView.setVisibility(View.VISIBLE);
         }
     }
+
     private boolean isRtl() {
         return TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL;
     }

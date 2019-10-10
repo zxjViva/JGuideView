@@ -27,13 +27,12 @@ public class MainActivity extends AppCompatActivity {
         maskView.find().calculate(new GuideCalculator.CalculatListener() {
             @Override
             public GuideOptions onResult(Rect tartViewRect) {
-                View guideView = getLayoutInflater().inflate(R.layout.guide_item, null);
+                View guideView = getLayoutInflater().inflate(R.layout.guide_item, rootView,false);
                 return new GuideOptions(guideView);
             }
         }).addEvent(new GuideView.EventCallback() {
             @Override
             public void event(int type) {
-                Log.e("zxj", "event: " + type );
 
             }
         });
@@ -43,9 +42,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public GuideOptions onResult(Rect tartViewRect) {
                 View guideView = getLayoutInflater().inflate(R.layout.guide_item, rootView,false);
-                GuideOptions guideOptions = new GuideOptions(guideView,
-                        GuideLayouter.Gravity.TOP|GuideLayouter.Gravity.RIGHT);
-                guideOptions.orientation = GuideLayouter.AlignOrientation.RIGHT;
+                GuideOptions guideOptions = new GuideOptions(guideView,new int[]{GuideLayouter.Rule.BELOW,GuideLayouter.Rule.ALIGN_PARENT_END});
                 return guideOptions;
             }
         });
@@ -56,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
             public GuideOptions onResult(Rect tartViewRect) {
                 View guideView = getLayoutInflater().inflate(R.layout.guide_item, rootView,false);
                 GuideOptions guideOptions = new GuideOptions(guideView);
-                guideOptions.orientation = GuideLayouter.AlignOrientation.RIGHT;
                 return guideOptions;
             }
         });
