@@ -16,6 +16,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         final View targetView = findViewById(R.id.tv);
         final View targetView2 = findViewById(R.id.tv2);
+        View targetView3 = findViewById(R.id.tv3);
         final ScrollView rootView = findViewById(R.id.sv);
         targetView.postDelayed(new Runnable() {
             @Override
@@ -23,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
                 targetView.setVisibility(View.VISIBLE);
             }
         },2000);
-        GuideView maskView = new GuideView(targetView, rootView);
+        GuideView maskView = new GuideView(targetView3, rootView);
         maskView.find().calculate(new GuideCalculator.CalculatListener() {
             @Override
             public GuideOptions onResult(Rect tartViewRect) {
@@ -32,8 +33,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }).addEvent(new GuideView.EventCallback() {
             @Override
-            public void event(int type) {
-
+            public boolean event(int type) {
+                if (type == GuideView.EventCallback.EVENT_PRE_SHOW){
+                    boolean localVisibleRect = targetView.getLocalVisibleRect(new Rect());
+                    return !localVisibleRect;
+                }
+                return false;
             }
         });
 
@@ -46,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
                 return guideOptions;
             }
         });
-        View targetView3 = findViewById(R.id.tv3);
+
         GuideView guideView3 = new GuideView(targetView3, rootView);
         guideView3.find().calculate(new GuideCalculator.CalculatListener() {
             @Override

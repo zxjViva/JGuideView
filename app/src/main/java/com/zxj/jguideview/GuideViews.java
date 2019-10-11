@@ -25,6 +25,13 @@ public class GuideViews {
     public void apply(){
         View maskView = showMask();
         final GuideView guideView = map.get(curIndex);
+        if (guideView == null){
+            boolean b = applyNext();
+            if (!b){
+                dismissMask();
+            }
+            return;
+        }
         maskView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

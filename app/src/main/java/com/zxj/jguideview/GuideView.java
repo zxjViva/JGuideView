@@ -20,9 +20,10 @@ public class GuideView {
     }
 
     public interface EventCallback{
-        int EVENT_SHOW = 1;
-        int EVENT_DISMISS = 2;
-        void event(int type);
+        int EVENT_PRE_SHOW = 1;
+        int EVENT_SHOW = 2;
+        int EVENT_DISMISS = 3;
+        boolean event(int type);
     }
 
 
@@ -69,6 +70,12 @@ public class GuideView {
         return guideCalculator.calculateRect(targetView,rootView);
     }
     private void startLayout(GuideOptions guideOptions) {
+        if (eventCallback != null){
+            boolean event = eventCallback.event(EventCallback.EVENT_PRE_SHOW);
+            if (event){
+                return;
+            }
+        }
         guideLayouter.setGuideOptions(guideOptions);
         guideLayouter.setCalculator(guideCalculator);
         guideLayouter.setVisible(true);
