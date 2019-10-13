@@ -1,6 +1,6 @@
 # JGuideView
 
-**JGuideView 是一种在指定控件附近弹出View的框架，一般用于新功能引导**
+**JGuideView 是一种在指定控件附近弹出View的框架，一般用于新功能引导(气泡引导)**
 
 *演示demo如下*
 
