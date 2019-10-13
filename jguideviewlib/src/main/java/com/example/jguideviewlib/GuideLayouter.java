@@ -13,7 +13,8 @@ import android.widget.ScrollView;
 import java.util.Locale;
 
 public class GuideLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
-    private static final int TAG_TEMPLATE_VIEW_ID = 1;
+    private static final int TAG_TEMPLATE_VIEW_ID1 = 1;
+    private static final int TAG_TEMPLATE_VIEW_ID2 = 2;
     private final ViewGroup rootView;
     private final View targetView;
     GuideOptions guideOptions;
@@ -187,31 +188,45 @@ public class GuideLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
             invisible();
         }
         RelativeLayout parent = (RelativeLayout) guideView.getParent();
-        View tagview = parent.findViewById(TAG_TEMPLATE_VIEW_ID);
-        if (tagview == null) {
-            tagview = new View(guideView.getContext());
-            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(tempRect.right - tempRect.left,
+        View tagview1 = parent.findViewById(TAG_TEMPLATE_VIEW_ID1);
+        View tagview2 = parent.findViewById(TAG_TEMPLATE_VIEW_ID2);
+        if (tagview1 == null) {
+            tagview1 = new View(guideView.getContext());
+            tagview2 = new View(guideView.getContext());
+            RelativeLayout.LayoutParams layoutParams1 = new RelativeLayout.LayoutParams(tempRect.right - tempRect.left,
                     tempRect.bottom - tempRect.top);
             int marginStart = isRtl() ? (rootView.getMeasuredWidth() - tempRect.right) : tempRect.left;
-            layoutParams.setMarginStart(marginStart);
-            layoutParams.topMargin = tempRect.top;
-            tagview.setLayoutParams(layoutParams);
-            tagview.setId(TAG_TEMPLATE_VIEW_ID);
-            parent.addView(tagview);
+            layoutParams1.setMarginStart(marginStart);
+            layoutParams1.topMargin = tempRect.top;
+            tagview1.setLayoutParams(layoutParams1);
+            tagview1.setId(TAG_TEMPLATE_VIEW_ID1);
+
+            RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams(tempRect.right - tempRect.left,
+                    tempRect.bottom - tempRect.top);
+            parent.addView(tagview1);
+            tagview2.setLayoutParams(layoutParams2);
+            tagview2.setId(TAG_TEMPLATE_VIEW_ID2);
+            layoutParams2.addRule(Rule.ALIGN_START,tagview1.getId());
+            layoutParams2.addRule(Rule.ALIGN_TOP,tagview1.getId());
+            parent.addView(tagview2);
         } else {
-            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(tempRect.right - tempRect.left,
+            RelativeLayout.LayoutParams layoutParams1 = new RelativeLayout.LayoutParams(tempRect.right - tempRect.left,
                     tempRect.bottom - tempRect.top);
             int marginStart = isRtl() ? (rootView.getMeasuredWidth() - tempRect.right) : tempRect.left;
-            layoutParams.setMarginStart(marginStart);
-            layoutParams.topMargin = tempRect.top;
-            tagview.setLayoutParams(layoutParams);
+            layoutParams1.setMarginStart(marginStart);
+            layoutParams1.topMargin = tempRect.top;
+            tagview1.setLayoutParams(layoutParams1);
+            ViewGroup.LayoutParams layoutParams2 = tagview2.getLayoutParams();
+            layoutParams2.height = tempRect.bottom - tempRect.top;
+            layoutParams2.width = tempRect.right - tempRect.left;
+            tagview2.setLayoutParams(layoutParams2);
         }
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) guideView.getLayoutParams();
         for (int rule : guideOptions.rules) {
             if (9 <= rule && rule <= 15){
                 layoutParams.addRule(rule);
             }else {
-                layoutParams.addRule(rule, tagview.getId());
+                layoutParams.addRule(rule, tagview2.getId());
             }
         }
 
@@ -252,7 +267,9 @@ public class GuideLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
             }
             guideOptions.guideView.setVisibility(View.GONE);
             ViewGroup parent = (ViewGroup) guideOptions.guideView.getParent();
-            View templateView = parent.findViewById(TAG_TEMPLATE_VIEW_ID);
+            View templateView = parent.findViewById(TAG_TEMPLATE_VIEW_ID1);
+            View templateView2 = parent.findViewById(TAG_TEMPLATE_VIEW_ID2);
+            parent.removeView(templateView2);
             parent.removeView(templateView);
             parent.removeView(guideOptions.guideView);
         }

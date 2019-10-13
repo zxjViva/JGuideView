@@ -6,8 +6,8 @@
     <TextView
         android:paddingTop="10dp"
         android:paddingStart="10dp"
-        android:background="@mipmap/pop1"
-        android:text="test1"
+        android:background="@mipmap/pop2"
+        android:text="test2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 

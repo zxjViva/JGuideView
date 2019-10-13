@@ -33,8 +33,8 @@ public class MainActivity extends AppCompatActivity {
         maskView.find().calculate(new GuideCalculator.CalculatListener() {
             @Override
             public GuideOptions onResult(Rect tartViewRect) {
-                View guideView = getLayoutInflater().inflate(R.layout.guide_item, rootView,false);
-                return new GuideOptions(guideView);
+                View guideView = getLayoutInflater().inflate(R.layout.guide_item1, rootView,false);
+                return new GuideOptions(guideView,new int[]{GuideLayouter.Rule.START_OF,GuideLayouter.Rule.ALIGN_BOTTOM});
             }
         }).addEvent(new GuideView.EventCallback() {
             @Override
@@ -52,8 +52,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public GuideOptions onResult(Rect tartViewRect) {
                 View guideView = getLayoutInflater().inflate(R.layout.guide_item, rootView,false);
-                GuideOptions guideOptions = new GuideOptions(guideView,new int[]{GuideLayouter.Rule.BELOW,GuideLayouter.Rule.ALIGN_PARENT_END});
-                return guideOptions;
+                return new GuideOptions(guideView,new int[]{GuideLayouter.Rule.ABOVE,GuideLayouter.Rule.ALIGN_END});
             }
         });
 
@@ -61,9 +60,8 @@ public class MainActivity extends AppCompatActivity {
         guideView3.find().calculate(new GuideCalculator.CalculatListener() {
             @Override
             public GuideOptions onResult(Rect tartViewRect) {
-                View guideView = getLayoutInflater().inflate(R.layout.guide_item, rootView,false);
-                GuideOptions guideOptions = new GuideOptions(guideView);
-                return guideOptions;
+                View guideView = getLayoutInflater().inflate(R.layout.guide_item2, rootView,false);
+                return new GuideOptions(guideView,new int[]{GuideLayouter.Rule.BELOW,GuideLayouter.Rule.ALIGN_START});
             }
         });
         GuideViews guideViews = new GuideViews(this);
