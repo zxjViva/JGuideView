@@ -1,4 +1,4 @@
-package com.zxj.jguideview;
+package com.example.jguideviewlib;
 
 import android.app.Activity;
 import android.graphics.Rect;
@@ -26,21 +26,19 @@ public class GuideViews {
         View maskView = showMask();
         final GuideView guideView = map.get(curIndex);
         if (guideView == null){
-            boolean b = applyNext();
-            if (!b){
-                dismissMask();
-            }
+            applyNext();
+            return;
+        }
+        if (guideView.getEventCallback() != null &&
+                guideView.getEventCallback().event(GuideView.EventCallback.EVENT_PRE_SHOW)){
+            applyNext();
             return;
         }
         maskView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 guideView.dismiss();
-                boolean b = applyNext();
-                if (!b){
-                    dismissMask();
-                }
-
+                applyNext();
             }
         });
         Rect rect = guideView.preCalculate();
@@ -56,8 +54,10 @@ public class GuideViews {
         if (curIndex < map.size()){
             apply();
             return true;
+        }else {
+            dismissMask();
+            return false;
         }
-        return false;
     }
     private View showMask(){
         ViewGroup rootview = (ViewGroup) activity.getWindow().getDecorView();

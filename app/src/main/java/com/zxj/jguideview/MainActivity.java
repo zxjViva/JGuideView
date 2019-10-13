@@ -2,11 +2,16 @@ package com.zxj.jguideview;
 
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ScrollView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.jguideviewlib.GuideCalculator;
+import com.example.jguideviewlib.GuideLayouter;
+import com.example.jguideviewlib.GuideOptions;
+import com.example.jguideviewlib.GuideView;
+import com.example.jguideviewlib.GuideViews;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
                 targetView.setVisibility(View.VISIBLE);
             }
         },2000);
-        GuideView maskView = new GuideView(targetView3, rootView);
+        GuideView maskView = new GuideView(targetView, rootView);
         maskView.find().calculate(new GuideCalculator.CalculatListener() {
             @Override
             public GuideOptions onResult(Rect tartViewRect) {

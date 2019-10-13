@@ -1,4 +1,4 @@
-package com.zxj.jguideview;
+package com.example.jguideviewlib;
 
 import android.view.View;
 

@@ -1,11 +1,9 @@
-package com.zxj.jguideview;
+package com.example.jguideviewlib;
 
 import android.graphics.Rect;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
@@ -13,9 +11,6 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 
 import java.util.Locale;
-
-import static android.widget.RelativeLayout.ALIGN_PARENT_END;
-import static android.widget.RelativeLayout.BELOW;
 
 public class GuideLayouter implements ViewTreeObserver.OnGlobalLayoutListener {
     private static final int TAG_TEMPLATE_VIEW_ID = 1;
